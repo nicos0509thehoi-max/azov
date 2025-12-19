@@ -1,5 +1,6 @@
--- Mooze-Style Key System + Your Full Script (Speed, Jump, ESP, Camlock)
--- Enter key: "traced" (case-insensitive) to unlock everything
+--i let the ai help me with the key system uwu
+
+
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -8,34 +9,27 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
-
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
-
 -- ╔═══════════════════════╗
--- ║      KEY SYSTEM       ║
+-- ║ KEY SYSTEM ║
 -- ╚═══════════════════════╝
-
-local CORRECT_KEY = "azv"  -- Change this if you want
-
+local CORRECT_KEY = "azv" 
 local KeyGui = Instance.new("ScreenGui")
 KeyGui.Name = "KeySystemGui"
 KeyGui.Parent = CoreGui
 KeyGui.ResetOnSpawn = false
-
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = KeyGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.Size = UDim2.new(0, 600, 0, 300)
 MainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
 MainFrame.ClipsDescendants = true
-
 local TitleBar = Instance.new("Frame")
 TitleBar.Parent = MainFrame
 TitleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 TitleBar.Size = UDim2.new(1, 0, 0, 28)
 TitleBar.Active = true
-
 local TitleText = Instance.new("TextLabel")
 TitleText.Parent = TitleBar
 TitleText.BackgroundTransparency = 1
@@ -45,7 +39,6 @@ TitleText.Text = "Azov .gg/cack5ZaXrE"
 TitleText.Font = Enum.Font.SourceSansBold
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.TextSize = 18
-
 local CloseButton = Instance.new("TextButton")
 CloseButton.Parent = TitleBar
 CloseButton.Size = UDim2.new(0, 40, 0, 28)
@@ -54,11 +47,9 @@ CloseButton.BackgroundTransparency = 1
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.TextSize = 18
-
 CloseButton.MouseButton1Click:Connect(function()
     KeyGui:Destroy()
 end)
-
 local AsciiArt = Instance.new("TextLabel")
 AsciiArt.Parent = MainFrame
 AsciiArt.BackgroundTransparency = 1
@@ -79,7 +70,6 @@ AsciiArt.TextColor3 = Color3.fromRGB(128, 128, 128)
 AsciiArt.TextSize = 12
 AsciiArt.TextWrapped = true
 AsciiArt.TextXAlignment = Enum.TextXAlignment.Center
-
 local KeyLabel = Instance.new("TextLabel")
 KeyLabel.Parent = MainFrame
 KeyLabel.BackgroundTransparency = 1
@@ -90,7 +80,6 @@ KeyLabel.RichText = true
 KeyLabel.TextColor3 = Color3.fromRGB(128, 128, 128)
 KeyLabel.TextSize = 14
 KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
-
 -- Dragging
 local dragging, dragInput, dragStart, startPos
 TitleBar.InputBegan:Connect(function(input)
@@ -114,18 +103,15 @@ UserInputService.InputChanged:Connect(function(input)
         MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
-
 -- Key system logic
 local typedKey = ""
 local showCursor = true
 local canType = false
 local authenticated = false
-
 local function updateLabel()
     local cursor = showCursor and "▄" or ""
     KeyLabel.Text = string.format('[<font color="rgb(255,0,0)">-</font>] Key: <font color="rgb(128,128,128)">%s</font><font color="rgb(255,255,255)">%s</font>', typedKey, cursor)
 end
-
 task.spawn(function()
     while not authenticated do
         showCursor = not showCursor
@@ -133,7 +119,6 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
-
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if canType and input.UserInputType == Enum.UserInputType.Keyboard then
@@ -172,7 +157,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         updateLabel()
     end
 end)
-
 UserInputService.InputBegan:Connect(function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
     local pos = input.Position
@@ -187,13 +171,10 @@ UserInputService.InputBegan:Connect(function(input)
         updateLabel()
     end
 end)
-
 updateLabel()
-
 -- ╔═══════════════════════════════════════════╗
--- ║      YOUR FULL SCRIPT LOADS HERE          ║
+-- ║ YOUR FULL SCRIPT LOADS HERE ║
 -- ╚═══════════════════════════════════════════╝
-
 function loadFeatures()
     -- Speed Boost (V) + Super Jump (Z hold)
     local SpeedEnabled = false
@@ -201,16 +182,13 @@ function loadFeatures()
     local DefaultJumpPower = 50
     local BoostWalkSpeed = 500
     local BoostJumpPower = 200
-
     local function onCharAdded(char)
         local hum = char:WaitForChild("Humanoid")
         hum.WalkSpeed = DefaultWalkSpeed
         hum.JumpPower = DefaultJumpPower
     end
-
     LocalPlayer.CharacterAdded:Connect(onCharAdded)
     if LocalPlayer.Character then onCharAdded(LocalPlayer.Character) end
-
     UserInputService.InputBegan:Connect(function(input, gp)
         if gp then return end
         if input.KeyCode == Enum.KeyCode.V then
@@ -218,24 +196,19 @@ function loadFeatures()
             print("Speed Boost:", SpeedEnabled and "ON (500 SPS)" or "OFF")
         end
     end)
-
     RunService.RenderStepped:Connect(function()
         local char = LocalPlayer.Character
         if not char then return end
         local hum = char:FindFirstChildOfClass("Humanoid")
         if not hum then return end
-
         hum.WalkSpeed = SpeedEnabled and BoostWalkSpeed or DefaultWalkSpeed
         hum.JumpPower = UserInputService:IsKeyDown(Enum.KeyCode.Z) and BoostJumpPower or DefaultJumpPower
     end)
-
     -- ESP (Highlight + Name + Health + Box)
     local ESPObjects = {}
-
     local function addESP(char)
         if char == LocalPlayer.Character then return end
         if ESPObjects[char] then return end
-
         local highlight = Instance.new("Highlight")
         highlight.FillColor = Color3.fromRGB(255, 0, 0)
         highlight.OutlineColor = Color3.fromRGB(255, 100, 100)
@@ -243,7 +216,6 @@ function loadFeatures()
         highlight.OutlineTransparency = 0
         highlight.Adornee = char
         highlight.Parent = char
-
         local head = char:WaitForChild("Head")
         local billboard = Instance.new("BillboardGui")
         billboard.Adornee = head
@@ -251,7 +223,6 @@ function loadFeatures()
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.AlwaysOnTop = true
         billboard.Parent = head
-
         local nameLabel = Instance.new("TextLabel")
         nameLabel.BackgroundTransparency = 1
         nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
@@ -262,7 +233,6 @@ function loadFeatures()
         nameLabel.Font = Enum.Font.GothamBold
         nameLabel.TextSize = 14
         nameLabel.Parent = billboard
-
         local healthLabel = Instance.new("TextLabel")
         healthLabel.BackgroundTransparency = 1
         healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
@@ -273,9 +243,7 @@ function loadFeatures()
         healthLabel.Font = Enum.Font.Gotham
         healthLabel.TextSize = 12
         healthLabel.Parent = billboard
-
         local humanoid = char:WaitForChild("Humanoid")
-
         local function updateHealth()
             local h = humanoid.Health
             local mh = humanoid.MaxHealth
@@ -284,17 +252,17 @@ function loadFeatures()
         end
         updateHealth()
         humanoid.HealthChanged:Connect(updateHealth)
-
+        humanoid.Died:Connect(function()  -- Added this to ensure removal on death, fixing the intermittent display issue
+            removeESP(char)
+        end)
         local box = Drawing.new("Square")
         box.Visible = false
         box.Color = Color3.fromRGB(255, 0, 0)
         box.Thickness = 2
         box.Filled = false
         box.Transparency = 0.7
-
         ESPObjects[char] = {highlight = highlight, billboard = billboard, box = box}
     end
-
     local function removeESP(char)
         if ESPObjects[char] then
             ESPObjects[char].highlight:Destroy()
@@ -303,7 +271,6 @@ function loadFeatures()
             ESPObjects[char] = nil
         end
     end
-
     RunService.RenderStepped:Connect(function()
         for char, obj in pairs(ESPObjects) do
             if char and char.Parent and obj.box then
@@ -327,7 +294,6 @@ function loadFeatures()
             end
         end
     end)
-
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr.Character then addESP(plr.Character) end
         plr.CharacterAdded:Connect(addESP)
@@ -340,33 +306,27 @@ function loadFeatures()
     Players.PlayerRemoving:Connect(function(plr)
         if plr.Character then removeESP(plr.Character) end
     end)
-
     print("ESP loaded")
-
     -- Camlock (C to toggle)
     local camlockEnabled = false
     local currentTarget = nil
     local Mouse = LocalPlayer:GetMouse()
-
     local tracer = Drawing.new("Line")
     tracer.Color = Color3.fromRGB(0, 255, 0)
     tracer.Thickness = 3
     tracer.Transparency = 0.6
     tracer.Visible = false
-
     local targetPart = "Head"
-
     local function isValidTarget(plr)
         local char = plr.Character
         if not char then return false end
         local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hum or hum.Health <= 1 then return false end
+        if not hum or hum.Health <= 0 then return false end  -- Changed from <=1 to <=0 as requested
         local be = char:FindFirstChild("BodyEffects")
         if be and be:FindFirstChild("K.O") and be["K.O"].Value then return false end
         if char:FindFirstChild("GRABBING_CONSTRAINT") then return false end
         return true
     end
-
     local function getClosestPlayer()
         local closest = nil
         local shortest = math.huge
@@ -388,7 +348,6 @@ function loadFeatures()
         end
         return closest
     end
-
     UserInputService.InputBegan:Connect(function(input)
         if input.KeyCode == Enum.KeyCode.C then
             camlockEnabled = not camlockEnabled
@@ -414,7 +373,6 @@ function loadFeatures()
             print("Camlock:", camlockEnabled and "ON" or "OFF")
         end
     end)
-
     RunService.RenderStepped:Connect(function()
         if not camlockEnabled or not currentTarget then
             tracer.Visible = false
@@ -441,11 +399,191 @@ function loadFeatures()
             tracer.Visible = false
         end
     end)
+	--hitbox
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
+_G.Enabled = true
+_G.BaseSize = 2
+_G.MaxSize = 25
+_G.DistanceForMax = 250
+_G.Transparency = 1  -- Fully invisible hitbox
+_G.ProximityThreshold = math.huge  -- Infinite threshold = always lock the closest visible player
+_G.Prediction = 0.138
+
+local originalSizes = {}
+local originalMaterials = {}
+local originalColors = {}
+
+local tracer = Drawing.new("Line")
+tracer.Thickness = 2
+tracer.Transparency = 0.45
+tracer.Color = Color3.fromRGB(255, 0, 0)
+tracer.Visible = false
+
+UserInputService.InputBegan:Connect(function(inp, gp)
+    if gp then return end
+    if inp.KeyCode == Enum.KeyCode.P then
+        _G.Enabled = not _G.Enabled
+        print(_G.Enabled and "HITBOX EXPANDER + ALWAYS-LOCK TRACER ON" or "OFF")
+    end
+end)
+
+local function worldToScreen(point)
+    local screenPos, onScreen = Camera:WorldToViewportPoint(point)
+    return Vector2.new(screenPos.X, screenPos.Y), onScreen, screenPos.Z
+end
+
+-- Now finds the closest visible player on screen (no proximity limit)
+local function getClosestVisiblePlayer()
+    local closestPlayer = nil
+    local shortestDist = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                local predPos = head.Position + head.AssemblyLinearVelocity * _G.Prediction
+                local screenPos, onScreen = worldToScreen(predPos)
+                if onScreen then
+                    local dist = (screenPos - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                    if dist < shortestDist and isVisible(head) then
+                        shortestDist = dist
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+local function isVisible(targetHead)
+    if not targetHead then return false end
+    local origin = Camera.CFrame.Position
+    local direction = (targetHead.Position - origin)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    
+    local result = workspace:Raycast(origin, direction, rayParams)
+    if result then
+        local hitPart = result.Instance
+        local hitChar = hitPart:FindFirstAncestorWhichIsA("Model")
+        if hitChar and hitChar:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(hitChar) then
+            return true
+        else
+            return false
+        end
+    end
+    return true
+end
+
+local function updateTracerToTarget(targetHead)
+    if not targetHead then
+        tracer.Visible = false
+        return
+    end
+
+    local mousePos = UserInputService:GetMouseLocation()
+    local predPos = targetHead.Position + targetHead.AssemblyLinearVelocity * _G.Prediction
+    local screenPos, onScreen = worldToScreen(predPos)
+
+    if onScreen then
+        tracer.From = mousePos
+        tracer.To = screenPos
+        tracer.Color = Color3.fromRGB(0, 255, 0)
+        tracer.Visible = true
+    else
+        tracer.Visible = false
+    end
+end
+
+local function resetHitbox(root)
+    if not root then return end
+    if originalSizes[root] then
+        root.Size = originalSizes[root]
+        originalSizes[root] = nil
+    end
+    if originalMaterials[root] then
+        root.Material = originalMaterials[root]
+        originalMaterials[root] = nil
+    end
+    if originalColors[root] then
+        root.Color = originalColors[root]
+        originalColors[root] = nil
+    end
+    root.Transparency = 0
+    root.CanCollide = true
+end
+
+RunService.Heartbeat:Connect(function()
+    if not _G.Enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        tracer.Visible = false
+        for root in pairs(originalSizes) do resetHitbox(root) end
+        return
+    end
+
+    for root in pairs(originalSizes) do resetHitbox(root) end
+    originalSizes = {}
+    originalMaterials = {}
+    originalColors = {}
+
+    local targetPlayer = getClosestVisiblePlayer()
+    local targetRoot = nil
+    local targetHead = nil
+    local visible = false
+
+    if targetPlayer and targetPlayer.Character then
+        targetHead = targetPlayer.Character:FindFirstChild("Head")
+        targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if targetHead and targetRoot then
+            visible = isVisible(targetHead)  -- Already checked in getClosest, but safe
+            
+            if visible then
+                originalSizes[targetRoot] = targetRoot.Size
+                originalMaterials[targetRoot] = targetRoot.Material
+                originalColors[targetRoot] = targetRoot.Color
+
+                local myPos = LocalPlayer.Character.HumanoidRootPart.Position
+                local distance = (myPos - targetRoot.Position).Magnitude
+                local scaleFactor = math.clamp(distance / _G.DistanceForMax, 0, 1)
+                local dynamicSize = _G.BaseSize + (_G.MaxSize - _G.BaseSize) * scaleFactor
+                local newSize = Vector3.new(dynamicSize, dynamicSize, dynamicSize)
+
+                targetRoot.Size = newSize
+                targetRoot.Transparency = _G.Transparency
+                targetRoot.CanCollide = false
+                targetRoot.Material = originalMaterials[targetRoot]
+                targetRoot.Color = originalColors[targetRoot]
+            end
+        end
+    end
+
+    if targetHead then
+        updateTracerToTarget(targetHead)
+    else
+        tracer.Visible = false
+    end
+end)
+
+spawn(function()
+    while wait(1) do
+        if not _G.Enabled then
+            tracer.Visible = false
+            for root in pairs(originalSizes) do resetHitbox(root) end
+        end
+    end
+end)
+
+print("hitbox loaded")
     print("Camlock (C to toggle) loaded")
     print("Speed (V toggle) & Super Jump (Z hold) loaded")
     print("ESP loaded")
     print("All features activated successfully!")
 end
-
-print("Key system loaded — enter the key to unlock everything!")
+print("heil ukraina!")
