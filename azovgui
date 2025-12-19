@@ -1,4 +1,5 @@
---aaap
+-- Mooze-Style Key System + Your Full Script (Speed, Jump, ESP, Camlock)
+-- Enter key: "traced" (case-insensitive) to unlock everything
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -396,6 +397,13 @@ function loadFeatures()
             tracer.Visible = false
         end
     end)
+    print("Camlock (C to toggle) loaded")
+    print("Speed (V toggle) & Super Jump (Z hold) loaded")
+    print("ESP loaded")
+    print("All features activated successfully!")
+end
+print("heil ukraina!")
+
 	--hitbox
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -408,13 +416,14 @@ _G.BaseSize = 2
 _G.MaxSize = 25
 _G.DistanceForMax = 250
 _G.Transparency = 1  -- Fully invisible hitbox
-_G.ProximityThreshold = math.huge  -- Infinite threshold = always lock the closest visible player
+_G.ProximityThreshold = 80
 _G.Prediction = 0.138
 
 local originalSizes = {}
 local originalMaterials = {}
 local originalColors = {}
 
+-- Fixed tracer - new Drawing.Line instance
 local tracer = Drawing.new("Line")
 tracer.Thickness = 2
 tracer.Transparency = 0.45
@@ -425,7 +434,7 @@ UserInputService.InputBegan:Connect(function(inp, gp)
     if gp then return end
     if inp.KeyCode == Enum.KeyCode.P then
         _G.Enabled = not _G.Enabled
-        print(_G.Enabled and "HITBOX EXPANDER + ALWAYS-LOCK TRACER ON" or "OFF")
+        print(_G.Enabled and "HITBOX EXPANDER + WALLCHECK + SILENT TRACER ON" or "OFF")
     end
 end)
 
@@ -434,10 +443,10 @@ local function worldToScreen(point)
     return Vector2.new(screenPos.X, screenPos.Y), onScreen, screenPos.Z
 end
 
--- Now finds the closest visible player on screen (no proximity limit)
-local function getClosestVisiblePlayer()
+local function getNearestPlayerToCursor()
+    local mousePos = UserInputService:GetMouseLocation()
     local closestPlayer = nil
-    local shortestDist = math.huge
+    local closestDist = _G.ProximityThreshold
 
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
@@ -446,9 +455,9 @@ local function getClosestVisiblePlayer()
                 local predPos = head.Position + head.AssemblyLinearVelocity * _G.Prediction
                 local screenPos, onScreen = worldToScreen(predPos)
                 if onScreen then
-                    local dist = (screenPos - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
-                    if dist < shortestDist and isVisible(head) then
-                        shortestDist = dist
+                    local dist = (screenPos - mousePos).Magnitude
+                    if dist < closestDist then
+                        closestDist = dist
                         closestPlayer = player
                     end
                 end
@@ -492,7 +501,7 @@ local function updateTracerToTarget(targetHead)
     if onScreen then
         tracer.From = mousePos
         tracer.To = screenPos
-        tracer.Color = Color3.fromRGB(0, 255, 0)
+        tracer.Color = Color3.fromRGB(0, 255, 0)  -- Green when locked
         tracer.Visible = true
     else
         tracer.Visible = false
@@ -529,7 +538,7 @@ RunService.Heartbeat:Connect(function()
     originalMaterials = {}
     originalColors = {}
 
-    local targetPlayer = getClosestVisiblePlayer()
+    local targetPlayer = getNearestPlayerToCursor()
     local targetRoot = nil
     local targetHead = nil
     local visible = false
@@ -539,7 +548,7 @@ RunService.Heartbeat:Connect(function()
         targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
         
         if targetHead and targetRoot then
-            visible = isVisible(targetHead)  -- Already checked in getClosest, but safe
+            visible = isVisible(targetHead)
             
             if visible then
                 originalSizes[targetRoot] = targetRoot.Size
@@ -561,7 +570,7 @@ RunService.Heartbeat:Connect(function()
         end
     end
 
-    if targetHead then
+    if visible and targetHead then
         updateTracerToTarget(targetHead)
     else
         tracer.Visible = false
@@ -578,9 +587,3 @@ spawn(function()
 end)
 
 print("hitbox loaded")
-    print("Camlock (C to toggle) loaded")
-    print("Speed (V toggle) & Super Jump (Z hold) loaded")
-    print("ESP loaded")
-    print("All features activated successfully!")
-end
-print("heil ukraina!")
