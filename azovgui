@@ -1,7 +1,4 @@
---i let the ai help me with the key system uwu
-
-
-
+--aaap
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
