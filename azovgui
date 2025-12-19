@@ -1,5 +1,4 @@
--- Mooze-Style Key System + Your Full Script (Speed, Jump, ESP, Camlock)
--- Enter key: "traced" (case-insensitive) to unlock everything
+--meow
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -413,28 +412,26 @@ local Camera = workspace.CurrentCamera
 
 _G.Enabled = true
 _G.BaseSize = 2
-_G.MaxSize = 25
-_G.DistanceForMax = 250
+_G.MaxSize = 150  -- Max 150 at 1000 studs like you want
+_G.DistanceForMax = 1000  -- Hits 150 exactly at 1000 studs
 _G.Transparency = 1  -- Fully invisible hitbox
-_G.ProximityThreshold = 80
 _G.Prediction = 0.138
 
 local originalSizes = {}
 local originalMaterials = {}
 local originalColors = {}
 
--- Fixed tracer - new Drawing.Line instance
 local tracer = Drawing.new("Line")
 tracer.Thickness = 2
 tracer.Transparency = 0.45
-tracer.Color = Color3.fromRGB(255, 0, 0)
+tracer.Color = Color3.fromRGB(255, 192, 203)
 tracer.Visible = false
 
 UserInputService.InputBegan:Connect(function(inp, gp)
     if gp then return end
     if inp.KeyCode == Enum.KeyCode.P then
         _G.Enabled = not _G.Enabled
-        print(_G.Enabled and "HITBOX EXPANDER + WALLCHECK + SILENT TRACER ON" or "OFF")
+        print(_G.Enabled and "🔥 HITBOX EXPANDER (150@1000STUDS) + ALWAYS-LOCK TRACER ON - P TOGGLE" or "OFF")
     end
 end)
 
@@ -443,20 +440,19 @@ local function worldToScreen(point)
     return Vector2.new(screenPos.X, screenPos.Y), onScreen, screenPos.Z
 end
 
-local function getNearestPlayerToCursor()
-    local mousePos = UserInputService:GetMouseLocation()
+local function getClosestVisiblePlayer()
     local closestPlayer = nil
-    local closestDist = _G.ProximityThreshold
+    local closestDist = math.huge
 
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
             local head = player.Character:FindFirstChild("Head")
             if head then
-                local predPos = head.Position + head.AssemblyLinearVelocity * _G.Prediction
+                local predPos = head.Position + (head.AssemblyLinearVelocity or Vector3.zero) * _G.Prediction
                 local screenPos, onScreen = worldToScreen(predPos)
                 if onScreen then
-                    local dist = (screenPos - mousePos).Magnitude
-                    if dist < closestDist then
+                    local dist = (screenPos - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                    if dist < closestDist and isVisible(head) then
                         closestDist = dist
                         closestPlayer = player
                     end
@@ -467,13 +463,13 @@ local function getNearestPlayerToCursor()
     return closestPlayer
 end
 
-local function isVisible(targetHead)
+function isVisible(targetHead)
     if not targetHead then return false end
     local origin = Camera.CFrame.Position
     local direction = (targetHead.Position - origin)
     local rayParams = RaycastParams.new()
     rayParams.FilterType = Enum.RaycastFilterType.Exclude
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character or workspace}
     
     local result = workspace:Raycast(origin, direction, rayParams)
     if result then
@@ -481,9 +477,8 @@ local function isVisible(targetHead)
         local hitChar = hitPart:FindFirstAncestorWhichIsA("Model")
         if hitChar and hitChar:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(hitChar) then
             return true
-        else
-            return false
         end
+        return false
     end
     return true
 end
@@ -495,13 +490,14 @@ local function updateTracerToTarget(targetHead)
     end
 
     local mousePos = UserInputService:GetMouseLocation()
-    local predPos = targetHead.Position + targetHead.AssemblyLinearVelocity * _G.Prediction
+    local velocity = targetHead.AssemblyLinearVelocity or Vector3.zero
+    local predPos = targetHead.Position + velocity * _G.Prediction
     local screenPos, onScreen = worldToScreen(predPos)
 
     if onScreen then
         tracer.From = mousePos
         tracer.To = screenPos
-        tracer.Color = Color3.fromRGB(0, 255, 0)  -- Green when locked
+        tracer.Color = Color3.fromRGB(0, 255, 0)
         tracer.Visible = true
     else
         tracer.Visible = false
@@ -538,39 +534,34 @@ RunService.Heartbeat:Connect(function()
     originalMaterials = {}
     originalColors = {}
 
-    local targetPlayer = getNearestPlayerToCursor()
+    local targetPlayer = getClosestVisiblePlayer()
     local targetRoot = nil
     local targetHead = nil
-    local visible = false
 
     if targetPlayer and targetPlayer.Character then
         targetHead = targetPlayer.Character:FindFirstChild("Head")
         targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
         
         if targetHead and targetRoot then
-            visible = isVisible(targetHead)
-            
-            if visible then
-                originalSizes[targetRoot] = targetRoot.Size
-                originalMaterials[targetRoot] = targetRoot.Material
-                originalColors[targetRoot] = targetRoot.Color
+            originalSizes[targetRoot] = targetRoot.Size
+            originalMaterials[targetRoot] = targetRoot.Material
+            originalColors[targetRoot] = targetRoot.Color
 
-                local myPos = LocalPlayer.Character.HumanoidRootPart.Position
-                local distance = (myPos - targetRoot.Position).Magnitude
-                local scaleFactor = math.clamp(distance / _G.DistanceForMax, 0, 1)
-                local dynamicSize = _G.BaseSize + (_G.MaxSize - _G.BaseSize) * scaleFactor
-                local newSize = Vector3.new(dynamicSize, dynamicSize, dynamicSize)
+            local myPos = LocalPlayer.Character.HumanoidRootPart.Position
+            local distance = (myPos - targetRoot.Position).Magnitude
+            local scaleFactor = math.clamp(distance / _G.DistanceForMax, 0, 1)
+            local dynamicSize = _G.BaseSize + (_G.MaxSize - _G.BaseSize) * scaleFactor
+            local newSize = Vector3.new(dynamicSize, dynamicSize, dynamicSize)
 
-                targetRoot.Size = newSize
-                targetRoot.Transparency = _G.Transparency
-                targetRoot.CanCollide = false
-                targetRoot.Material = originalMaterials[targetRoot]
-                targetRoot.Color = originalColors[targetRoot]
-            end
+            targetRoot.Size = newSize
+            targetRoot.Transparency = _G.Transparency
+            targetRoot.CanCollide = false
+            targetRoot.Material = originalMaterials[targetRoot]
+            targetRoot.Color = originalColors[targetRoot]
         end
     end
 
-    if visible and targetHead then
+    if targetHead then
         updateTracerToTarget(targetHead)
     else
         tracer.Visible = false
@@ -586,4 +577,4 @@ spawn(function()
     end
 end)
 
-print("hitbox loaded")
+print("hitbox loaded P to toggle") 
