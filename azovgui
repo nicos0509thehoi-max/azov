@@ -207,8 +207,8 @@ function loadFeatures()
         if char == LocalPlayer.Character then return end
         if ESPObjects[char] then return end
         local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor = Color3.fromRGB(255, 100, 100)
+        highlight.FillColor = Color3.fromRGB(0, 0, 255)
+        highlight.OutlineColor = Color3.fromRGB(120, 81, 169)
         highlight.FillTransparency = 0.5
         highlight.OutlineTransparency = 0
         highlight.Adornee = char
@@ -227,7 +227,7 @@ function loadFeatures()
         nameLabel.TextColor3 = Color3.new(1, 1, 1)
         nameLabel.TextStrokeTransparency = 0
         nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.Font = Enum.Font.Code
         nameLabel.TextSize = 14
         nameLabel.Parent = billboard
         local healthLabel = Instance.new("TextLabel")
@@ -237,7 +237,7 @@ function loadFeatures()
         healthLabel.TextColor3 = Color3.new(0, 1, 0)
         healthLabel.TextStrokeTransparency = 0
         healthLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-        healthLabel.Font = Enum.Font.Gotham
+        healthLabel.Font = Enum.Font.Code
         healthLabel.TextSize = 12
         healthLabel.Parent = billboard
         local humanoid = char:WaitForChild("Humanoid")
@@ -254,7 +254,7 @@ function loadFeatures()
         end)
         local box = Drawing.new("Square")
         box.Visible = false
-        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Color = Color3.fromRGB(0, 0, 255)
         box.Thickness = 2
         box.Filled = false
         box.Transparency = 0.7
