@@ -412,9 +412,9 @@ local Camera = workspace.CurrentCamera
 
 _G.Enabled = true
 _G.BaseSize = 2
-_G.MaxSize = 150      -- Max hitbox size
-_G.DistanceForMax = 1000  -- Full 150 at 1000 studs
-_G.Transparency = 1   -- Fully invisible
+_G.MaxSize = 150
+_G.DistanceForMax = 1000
+_G.Transparency = 1
 _G.Prediction = 0.138
 
 local originalSizes = {}
@@ -424,7 +424,7 @@ local originalColors = {}
 local tracer = Drawing.new("Line")
 tracer.Thickness = 2
 tracer.Transparency = 0.45
-tracer.Color = Color3.fromRGB(0, 0, 139)  -- Dark blue as requested
+tracer.Color = Color3.fromRGB(0, 0, 139)
 tracer.Visible = false
 
 UserInputService.InputBegan:Connect(function(inp, gp)
@@ -466,22 +466,14 @@ end
 function isVisible(targetPart)
     if not targetPart then return false end
     local origin = Camera.CFrame.Position
-    local direction = (targetPart.Position - origin) * 1000  -- Longer ray for reliability
+    local direction = targetPart.Position - origin
     local rayParams = RaycastParams.new()
     rayParams.FilterType = Enum.RaycastFilterType.Exclude
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent}
     rayParams.IgnoreWater = true
     
     local result = workspace:Raycast(origin, direction, rayParams)
-    if result then
-        local hitPart = result.Instance
-        local hitModel = hitPart:FindFirstAncestorWhichIsA("Model")
-        if hitModel and hitModel:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(hitModel) then
-            return true
-        end
-        return false
-    end
-    return true
+    return not result
 end
 
 local function updateTracerToTarget(targetPart)
@@ -498,7 +490,7 @@ local function updateTracerToTarget(targetPart)
     if onScreen then
         tracer.From = mousePos
         tracer.To = screenPos
-        tracer.Color = Color3.fromRGB(0, 0, 139)  -- Dark blue locked color
+        tracer.Color = Color3.fromRGB(0, 0, 139)
         tracer.Visible = true
     else
         tracer.Visible = false
@@ -523,27 +515,31 @@ local function resetHitbox(part)
     part.CanCollide = true
 end
 
+local currentTargetRoot = nil
+
 RunService.Heartbeat:Connect(function()
     if not _G.Enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         tracer.Visible = false
-        for part in pairs(originalSizes) do resetHitbox(part) end
+        if currentTargetRoot then resetHitbox(currentTargetRoot) end
         return
     end
 
-    for part in pairs(originalSizes) do resetHitbox(part) end
-    originalSizes = {}
-    originalMaterials = {}
-    originalColors = {}
+    -- Always reset previous target first
+    if currentTargetRoot then
+        resetHitbox(currentTargetRoot)
+        currentTargetRoot = nil
+    end
 
     local targetPlayer = getClosestVisiblePlayer()
     local targetRoot = nil
-    local targetPart = nil  -- For tracer (head or equivalent)
+    local targetPart = nil  -- For tracer
 
     if targetPlayer and targetPlayer.Character then
         targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart") or targetPlayer.Character:FindFirstChild("Torso") or targetPlayer.Character.PrimaryPart
         targetPart = targetPlayer.Character:FindFirstChild("Head") or targetPlayer.Character:FindFirstChild("UpperTorso") or targetRoot
         
         if targetRoot and targetPart then
+            -- Apply expansion only to the locked (tracer-visible) target
             originalSizes[targetRoot] = targetRoot.Size
             originalMaterials[targetRoot] = targetRoot.Material or Enum.Material.Plastic
             originalColors[targetRoot] = targetRoot.Color or Color3.new(1,1,1)
@@ -559,6 +555,8 @@ RunService.Heartbeat:Connect(function()
             targetRoot.CanCollide = false
             targetRoot.Material = originalMaterials[targetRoot]
             targetRoot.Color = originalColors[targetRoot]
+
+            currentTargetRoot = targetRoot
         end
     end
 
@@ -573,8 +571,12 @@ spawn(function()
     while wait(1) do
         if not _G.Enabled then
             tracer.Visible = false
-            for part in pairs(originalSizes) do resetHitbox(part) end
+            if currentTargetRoot then
+                resetHitbox(currentTargetRoot)
+                currentTargetRoot = nil
+            end
         end
     end
 end)
-print("hitbox loaded P to toggle") 
+
+print("hitbox loaded P to toggle")
