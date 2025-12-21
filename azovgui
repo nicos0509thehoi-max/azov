@@ -191,7 +191,7 @@ function loadFeatures()
     -- UI Toggle
     local UITab = Window:NewTab("UI")
     local UISection = UITab:NewSection("Toggle")
-    UISection:NewKeybind("Toggle UI", "Opens/Closes the menu", Enum.KeyCode.RightShift, function()
+    UISection:NewKeybind("Toggle UI", "Opens/Closes the menu", Enum.KeyCode.RightControl, function()
         Library:ToggleUI()
     end)
 
@@ -586,7 +586,7 @@ function loadFeatures()
                 local myPos = LocalPlayer.Character.HumanoidRootPart.Position
                 local distance = (myPos - targetRoot.Position).Magnitude
                 local scaleFactor = math.clamp(distance / 1000, 0, 1)
-                local dynamicSize = 2 + (150 - 2) * scaleFactor
+                local dynamicSize = 2 + (75 - 2) * scaleFactor
                 targetRoot.Size = Vector3.new(dynamicSize, dynamicSize, dynamicSize)
                 targetRoot.Transparency = 1
                 targetRoot.CanCollide = false
