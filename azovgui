@@ -1,10 +1,11 @@
+--meow
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
-local StarterGui = game:GetService("StarterGui")
+local StarterGui = game:GetCore("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
@@ -208,8 +209,8 @@ function loadFeatures()
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then
-                hum.WalkSpeed = SpeedEnabled and CONFIG.SUPER_SPEED or 16
-                hum.JumpPower = superJumpEnabled and CONFIG.SUPER_JUMP or 50
+                hum.WalkSpeed = SpeedEnabled and AZOV_CONFIG.SUPER_SPEED or 16
+                hum.JumpPower = superJumpEnabled and AZOV_CONFIG.SUPER_JUMP or 50
             end
         end
     end
@@ -280,15 +281,15 @@ function loadFeatures()
         local hoveredEnemy = isMouseOverEnemy()
         if hoveredEnemy then
             currentTarget = hoveredEnemy
-            local part = currentTarget.Character:FindFirstChild(CONFIG.TARGET_PART)
+            local part = currentTarget.Character:FindFirstChild(AZOV_CONFIG.TARGET_PART)
             if part then
                 local velocity = part.AssemblyLinearVelocity or Vector3.new(0,0,0)
-                local predictedPos = part.Position + (velocity * (CONFIG.TRIGGER_PREDICTION / 1000))
+                local predictedPos = part.Position + (velocity * (AZOV_CONFIG.TRIGGER_PREDICTION / 1000))
                 local currentCFrame = Camera.CFrame
                 local targetCFrame = CFrame.lookAt(currentCFrame.Position, predictedPos)
-                Camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 - (CONFIG.TRIGGER_SMOOTHNESS / 1000))
+                Camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 - (AZOV_CONFIG.TRIGGER_SMOOTHNESS / 1000))
             end
-            if tick() - lastFireTime > CONFIG.TRIGGER_DELAY then
+            if tick() - lastFireTime > AZOV_CONFIG.TRIGGER_DELAY then
                 mouse1press()
                 task.wait(0.01)
                 mouse1release()
@@ -299,15 +300,15 @@ function loadFeatures()
         end
     end)
 
-    -- CAMLOCK ONLY
+    -- CAMLOCK ONLY - STICKY (C Key)
     local camlockOnlyEnabled = false
     local camlockOnlyTarget = nil
 
-    CamlockSection:NewToggle("Camlock", "Locks until target dies or toggle off", function(state)
+    CamlockSection:NewToggle("Camlock Only (Sticky)", "Locks until target dies or toggle off", function(state)
         camlockOnlyEnabled = state
         StarterGui:SetCore("SendNotification", {
-            Title = "Camlock",
-            Text = camlockOnlyEnabled and "ON" or "OFF",
+            Title = "Camlock Only",
+            Text = camlockOnlyEnabled and "ON (Sticky Mode)" or "OFF",
             Duration = 2
         })
         if not camlockOnlyEnabled then
@@ -319,7 +320,7 @@ function loadFeatures()
         camlockOnlyEnabled = not camlockOnlyEnabled
         StarterGui:SetCore("SendNotification", {
             Title = "Camlock Only",
-            Text = camlockOnlyEnabled and "ON" or "OFF",
+            Text = camlockOnlyEnabled and "ON (Sticky Mode)" or "OFF",
             Duration = 2
         })
         if not camlockOnlyEnabled then
@@ -333,7 +334,7 @@ function loadFeatures()
         if not camlockOnlyTarget or not camlockOnlyTarget.Parent or not isValidTarget(Players:GetPlayerFromCharacter(camlockOnlyTarget.Parent)) then
             local hoveredEnemy = isMouseOverEnemy()
             if hoveredEnemy then
-                camlockOnlyTarget = hoveredEnemy.Character:FindFirstChild(CONFIG.TARGET_PART)
+                camlockOnlyTarget = hoveredEnemy.Character:FindFirstChild(AZOV_CONFIG.TARGET_PART)
                 if camlockOnlyTarget then
                     StarterGui:SetCore("SendNotification", {
                         Title = "Camlock Target",
@@ -346,15 +347,15 @@ function loadFeatures()
 
         if camlockOnlyTarget and camlockOnlyTarget.Parent then
             local velocity = camlockOnlyTarget.AssemblyLinearVelocity or Vector3.new(0,0,0)
-            local predictedPos = camlockOnlyTarget.Position + (velocity * (CONFIG.CAMLOCK_ONLY_PREDICTION / 1000))
+            local predictedPos = camlockOnlyTarget.Position + (velocity * (AZOV_CONFIG.CAMLOCK_ONLY_PREDICTION / 1000))
             local currentCFrame = Camera.CFrame
             local targetCFrame = CFrame.lookAt(currentCFrame.Position, predictedPos)
-            Camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 - (CONFIG.CAMLOCK_ONLY_SMOOTHNESS / 1000))
+            Camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 - (AZOV_CONFIG.CAMLOCK_ONLY_SMOOTHNESS / 1000))
         end
     end)
 
     -- Hitbox Expander
-    _G.HitboxEnabled = CONFIG.HITBOX_ENABLED_BY_DEFAULT
+    _G.HitboxEnabled = false  -- Default off, toggle with P
     FeaturesSection:NewKeybind("Hitbox Expander Toggle", "P Key", Enum.KeyCode.P, function()
         _G.HitboxEnabled = not _G.HitboxEnabled
         StarterGui:SetCore("SendNotification", {Title = "Hitbox", Text = _G.HitboxEnabled and "ON" or "OFF", Duration = 2})
@@ -382,7 +383,7 @@ function loadFeatures()
             if player ~= LocalPlayer and player.Character then
                 local head = player.Character:FindFirstChild("Head") or player.Character:FindFirstChild("UpperTorso") or player.Character.PrimaryPart
                 if head then
-                    local predPos = head.Position + (head.AssemblyLinearVelocity or Vector3.zero) * (CONFIG.TRIGGER_PREDICTION / 1000)
+                    local predPos = head.Position + (head.AssemblyLinearVelocity or Vector3.zero) * (AZOV_CONFIG.TRIGGER_PREDICTION / 1000)
                     local screenPos, onScreen = worldToScreen(predPos)
                     if onScreen then
                         local dist = (screenPos - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
@@ -416,7 +417,7 @@ function loadFeatures()
         end
         local mousePos = UserInputService:GetMouseLocation()
         local velocity = targetPart.AssemblyLinearVelocity or Vector3.zero
-        local predPos = targetPart.Position + velocity * (CONFIG.TRIGGER_PREDICTION / 1000)
+        local predPos = targetPart.Position + velocity * (AZOV_CONFIG.TRIGGER_PREDICTION / 1000)
         local screenPos, onScreen = worldToScreen(predPos)
         if onScreen then
             hitboxTracer.From = mousePos
@@ -452,7 +453,7 @@ function loadFeatures()
 
         if targetPlayer and targetPlayer.Character then
             targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart") or targetPlayer.Character:FindFirstChild("Torso") or targetPlayer.Character.PrimaryPart
-            targetPart = targetPlayer.Character:FindFirstChild(CONFIG.TARGET_PART) or targetRoot
+            targetPart = targetPlayer.Character:FindFirstChild(AZOV_CONFIG.TARGET_PART) or targetRoot
             if targetRoot and targetPart then
                 originalSizes[targetRoot] = targetRoot.Size
                 originalMaterials[targetRoot] = targetRoot.Material or Enum.Material.Plastic
@@ -460,8 +461,8 @@ function loadFeatures()
 
                 local myPos = LocalPlayer.Character.HumanoidRootPart.Position
                 local distance = (myPos - targetRoot.Position).Magnitude
-                local scaleFactor = math.clamp(distance / CONFIG.HITBOX_SCALE_DISTANCE, 0, 1)
-                local dynamicSize = CONFIG.HITBOX_MIN_SIZE + (CONFIG.HITBOX_MAX_SIZE - CONFIG.HITBOX_MIN_SIZE) * (1 - scaleFactor)
+                local scaleFactor = math.clamp(distance / AZOV_CONFIG.HITBOX_SCALE_DISTANCE, 0, 1)
+                local dynamicSize = AZOV_CONFIG.HITBOX_MIN_SIZE + (AZOV_CONFIG.HITBOX_MAX_SIZE - AZOV_CONFIG.HITBOX_MIN_SIZE) * (1 - scaleFactor)
 
                 targetRoot.Size = Vector3.new(dynamicSize, dynamicSize, dynamicSize)
                 targetRoot.Transparency = 1
